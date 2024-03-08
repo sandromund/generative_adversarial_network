@@ -3,6 +3,8 @@ from torch import nn
 
 from model import Generator, Discriminator
 from data import get_demo_data_loader
+from matplotlib import pyplot as plt
+from tqdm import tqdm
 
 batch_size = 32
 
@@ -18,7 +20,10 @@ loss_function = nn.BCELoss()
 optimizer_discriminator = torch.optim.Adam(discriminator.parameters(), lr=lr)
 optimizer_generator = torch.optim.Adam(generator.parameters(), lr=lr)
 
-for epoch in range(num_epochs):
+loss_discriminator_list = []
+loss_generator_list = []
+
+for epoch in tqdm(range(num_epochs)):
     for n, (real_samples, _) in enumerate(train_loader):
         # Data for training the discriminator
         real_samples_labels = torch.ones((batch_size, 1))
@@ -51,9 +56,12 @@ for epoch in range(num_epochs):
         loss_generator.backward()
         optimizer_generator.step()
 
-        # Show loss
-        if epoch % 10 == 0 and n == batch_size - 1:
-            print(f"Epoch: {epoch} Loss D.: {loss_discriminator}")
-            print(f"Epoch: {epoch} Loss G.: {loss_generator}")
+        loss_discriminator_list.append(float(loss_discriminator))
+        loss_generator_list.append(float(loss_generator))
+
+plt.plot(loss_discriminator_list, label='loss_discriminator')
+plt.plot(loss_generator_list, label='loss_generator')
+plt.legend()
+plt.show()
 
 torch.save(generator.state_dict(), MODEL_SAVE_PATH)
