@@ -4,3 +4,4 @@ torchvision
 tqdm
 PyYAML
 click
+mlflow
