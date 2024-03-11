@@ -13,7 +13,7 @@ def cli():
 @click.option('--lr', default=0.001, help='Learning rate')
 @click.option('--epochs', default=300, help='Number of training epochs')
 @click.option('--batch', default=32, help='Training batch size')
-def train(lr, epochs, batch, save):
+def train(lr, epochs, batch):
     train_models(batch_size=batch, lr=lr, num_epochs=epochs)
 
 
