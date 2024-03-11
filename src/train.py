@@ -1,3 +1,4 @@
+import mlflow.pytorch
 import torch
 from torch import nn
 from tqdm import tqdm
@@ -5,14 +6,13 @@ from tqdm import tqdm
 from data import get_demo_data_loader
 from model import Generator, Discriminator
 
-import mlflow.pytorch
 
-
-def train_models(batch_size, model_save_path, lr, num_epochs):
+def train_models(batch_size, lr, num_epochs):
     mlflow.set_experiment("Generative Adversarial Network")
     mlflow.pytorch.autolog()
 
     with mlflow.start_run() as run:
+        mlflow.set_tag("GAN", "DL")
 
         mlflow.log_param('batch_size', batch_size)
         mlflow.log_param('learning_rate', lr)
@@ -59,10 +59,8 @@ def train_models(batch_size, model_save_path, lr, num_epochs):
                 loss_generator.backward()
                 optimizer_generator.step()
 
-                loss_discriminator_list.append(float(loss_discriminator))
-                loss_generator_list.append(float(loss_generator))
-
                 mlflow.log_metric("loss_discriminator", loss_discriminator, step=epoch)
                 mlflow.log_metric("loss_generator", loss_generator, step=epoch)
 
-        torch.save(generator.state_dict(), model_save_path)
+        mlflow.pytorch.log_model(generator, "generator")
+        mlflow.pytorch.log_model(discriminator, "discriminator")
