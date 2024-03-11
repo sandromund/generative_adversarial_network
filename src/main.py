@@ -15,7 +15,7 @@ def cli():
 @click.option('--batch', default=32, help='Training batch size')
 @click.option('--save', default="generator.pt", help='Model save path')
 def train(lr, epochs, batch, save):
-    train_models(batch_size=batch, model_save_path=save, lr=lr, num_epochs=epochs, plot_training=True)
+    train_models(batch_size=batch, model_save_path=save, lr=lr, num_epochs=epochs)
 
 
 @click.command()

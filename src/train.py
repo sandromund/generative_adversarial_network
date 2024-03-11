@@ -1,7 +1,4 @@
-import datetime
-
 import torch
-from matplotlib import pyplot as plt
 from torch import nn
 from tqdm import tqdm
 
@@ -11,7 +8,7 @@ from model import Generator, Discriminator
 import mlflow.pytorch
 
 
-def train_models(batch_size, model_save_path, lr, num_epochs, plot_training):
+def train_models(batch_size, model_save_path, lr, num_epochs):
     mlflow.set_experiment("Generative Adversarial Network")
     mlflow.pytorch.autolog()
 
@@ -28,9 +25,6 @@ def train_models(batch_size, model_save_path, lr, num_epochs, plot_training):
 
         optimizer_discriminator = torch.optim.Adam(discriminator.parameters(), lr=lr)
         optimizer_generator = torch.optim.Adam(generator.parameters(), lr=lr)
-
-        loss_discriminator_list = []
-        loss_generator_list = []
 
         for epoch in tqdm(range(num_epochs)):
             for n, (real_samples, _) in enumerate(train_loader):
@@ -70,11 +64,5 @@ def train_models(batch_size, model_save_path, lr, num_epochs, plot_training):
 
                 mlflow.log_metric("loss_discriminator", loss_discriminator, step=epoch)
                 mlflow.log_metric("loss_generator", loss_generator, step=epoch)
-
-        if plot_training:
-            plt.plot(loss_discriminator_list, label='loss_discriminator')
-            plt.plot(loss_generator_list, label='loss_generator')
-            plt.legend()
-            plt.show()
 
         torch.save(generator.state_dict(), model_save_path)
