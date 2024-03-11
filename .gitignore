@@ -1,3 +1,4 @@
 *.pt
 *.ipynb
 .idea
+data
