@@ -4,8 +4,30 @@ import os
 from pprint import pprint
 
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
+
+
+class KilterBoardData(Dataset):
+    def __init__(self, x, y):
+        super(KilterBoardData, self).__init__()
+        self.x = x
+        self.y = y
+
+    def __len__(self):
+        return len(self.y)
+
+    def __getitem__(self, index):
+        return self.x[index], self.y[index]
+
+
+def get_data_loader(data_path: str, batch_size: int) -> DataLoader:
+    pp = Preprocessor()
+    x, y = pp.preprocess_data(data_path=data_path)
+    pp.info()
+    data = KilterBoardData(x=x, y=y)
+    train_loader = DataLoader(data, batch_size=batch_size, shuffle=True)
+    return train_loader
 
 
 def get_demo_data_loader(batch_size: int, train_data_length=1024) -> DataLoader:
@@ -52,10 +74,24 @@ class Preprocessor:
     Note:
     -----
     This class provides functionality for preprocessing data for further analysis.
+
+    Example:
+        import matplotlib.pyplot as plt
+
+        pp = Preprocessor()
+        data = pp.preprocess_data(data_path="../data/climbs")
+        pp.info()
+
+        fig, axes = plt.subplots(5, 5, figsize=(8, 8))
+        for i, ax in enumerate(axes.flat):
+            ax.imshow(data[i][1].cpu().numpy())
+        plt.show()
+
     """
 
     def __init__(self):
-
+        self.n_samples = 0
+        self.n_max_samples = 20_000
         self.data_path = None
         self.track_counter = None
         self.file_counter = None
@@ -101,7 +137,7 @@ class Preprocessor:
             if x < self.x_min or x > self.x_max or self.y_min < 0 or y > self.y_max:
                 return None
             pp_track_x[y, x] = placement_type_mapped
-        return pp_track_id, pp_track_x
+        return pp_track_x, pp_track_id
 
     def preprocess_data(self, data_path):
         """
@@ -127,8 +163,9 @@ class Preprocessor:
         self.track_counter = 0
         self.file_counter = 0
         self.rejected_tracks_counter = 0
-        pp_data = []
-        for file in tqdm(os.listdir(self.data_path)):
+        x_list = []
+        y_list = []
+        for file in tqdm(os.listdir(self.data_path), f"Preprocessing data in {self.data_path}"):
             self.file_counter += 1
             if not file.endswith(".json"):
                 continue
@@ -138,10 +175,15 @@ class Preprocessor:
                 self.track_counter += 1
                 processed_track = self.preprocess_track(track)
                 if processed_track is not None:
-                    pp_data.append(processed_track)
+                    pp_track_x, pp_track_id = processed_track
+                    x_list.append(pp_track_x)
+                    y_list.append(pp_track_id)
+                    self.n_samples += 1
+                    if self.n_samples >= self.n_max_samples:
+                        return x_list, y_list
                 else:
                     self.rejected_tracks_counter += 1
-        return pp_data
+        return x_list, y_list
 
     def info(self):
 
@@ -154,17 +196,3 @@ class Preprocessor:
         including the values of all its attributes.
         """
         return pprint(vars(self))
-
-
-if __name__ == '__main__':
-    pp = Preprocessor()
-    data = pp.preprocess_data(data_path="../data/climbs")
-    pp.info()
-
-    import matplotlib.pyplot as plt
-
-    fig, axes = plt.subplots(5, 5, figsize=(8, 8))
-
-    for i, ax in enumerate(axes.flat):
-        ax.imshow(data[i][1].cpu().numpy())
-    plt.show()

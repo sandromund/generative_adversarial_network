@@ -5,7 +5,7 @@ Learn more about it [here](https://realpython.com/generative-adversarial-network
 
 Training
 ```shell
- python src/main.py train --epochs 300
+ python src/main.py train --data data/climbs
 ```
 
 Generate
