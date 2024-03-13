@@ -10,10 +10,10 @@ Training
 
 Generate
 ```shell
-python src/main.py generate --model runs:/f3e47b7bcd514513ae42a7c395930d6f/generator
+python src/main.py generate --model runs:/3c6898b479dc4928bf2baa5133295a50/generator
 ```
 Tracking
-MlFlow Server on http://localhost:5000
+MlFlow Server
 ```shell
 mlflow server --host 127.0.0.1 --port 8080
 ```

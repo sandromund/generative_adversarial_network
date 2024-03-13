@@ -1,25 +1,15 @@
 import matplotlib.pyplot as plt
 import torch
 
-from model import Generator
+from const import LATENT_SPACE_SAMPLE
 import mlflow
-
-
-def generate_sample_torch(model_path):
-    generator = Generator()
-    generator.load_state_dict(torch.load(model_path))
-    print(generator.eval())
-    latent_space_samples = torch.randn(100, 2)
-    generated_samples = generator(latent_space_samples)
-    generated_samples = generated_samples.detach()
-    plt.plot(generated_samples[:, 0], generated_samples[:, 1], ".")
-    plt.show()
 
 
 def generate_sample_mlflow(model_uri):
     generator = mlflow.pytorch.load_model(model_uri)
-    latent_space_samples = torch.randn(100, 2)
+    latent_space_samples = torch.randn(1, LATENT_SPACE_SAMPLE)
     generated_samples = generator(latent_space_samples)
     generated_samples = generated_samples.detach()
-    plt.plot(generated_samples[:, 0], generated_samples[:, 1], ".")
+    generated_samples = generated_samples.cpu().numpy()[0]
+    plt.imshow(generated_samples, interpolation='none')
     plt.show()
