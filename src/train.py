@@ -18,6 +18,7 @@ def train_models(data_path, batch_size, lr, num_epochs):
         mlflow.log_param('batch_size', batch_size)
         mlflow.log_param('learning_rate', lr)
         mlflow.log_param('num_epochs', num_epochs)
+        mlflow.log_param("LATENT_SPACE_SAMPLE", LATENT_SPACE_SAMPLE)
 
         discriminator = Discriminator()
         generator = Generator()

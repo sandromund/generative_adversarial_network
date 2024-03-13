@@ -12,7 +12,7 @@ def cli():
 @click.command()
 @click.option('--data', help='Path to the training data')
 @click.option('--lr', default=0.001, help='Learning rate')
-@click.option('--epochs', default=300, help='Number of training epochs')
+@click.option('--epochs', default=200, help='Number of training epochs')
 @click.option('--batch', default=500, help='Training batch size')
 def train(data, lr, epochs, batch):
     train_models(data_path=data, batch_size=batch, lr=lr, num_epochs=epochs)
