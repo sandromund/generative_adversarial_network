@@ -36,7 +36,7 @@ class Preprocessor:
         Counter for the number of files processed. Default is None.
     rejected_tracks_counter : int or None
         Counter for the number of rejected tracks during preprocessing. Default is None.
-    :px_min : int
+    x_min : int
         Minimum value for the x-coordinate of placements. Default is 1.
     x_max : int
         Maximum value for the x-coordinate of placements. Default is 35.
@@ -65,11 +65,10 @@ class Preprocessor:
         self.y_min = 0
         self.y_max = 35
         self.data_shape = (self.y_max + 1, self.x_max + 1)
-        self.mapping = \
-            {'MIDDLE': 1,
-             'FEET-ONLY': 2,
-             'START': 3,
-             'FINISH': 4}
+        self.mapping = {'MIDDLE': 1,
+                        'FEET-ONLY': 2,
+                        'START': 3,
+                        'FINISH': 4}
 
     def preprocess_track(self, track):
         """
@@ -101,8 +100,8 @@ class Preprocessor:
             y = placement.get("y")
             if x < self.x_min or x > self.x_max or self.y_min < 0 or y > self.y_max:
                 return None
-            pp_track_x[y][x] = placement_type_mapped
-            return pp_track_id, pp_track_x
+            pp_track_x[y, x] = placement_type_mapped
+        return pp_track_id, pp_track_x
 
     def preprocess_data(self, data_path):
         """
@@ -155,3 +154,17 @@ class Preprocessor:
         including the values of all its attributes.
         """
         return pprint(vars(self))
+
+
+if __name__ == '__main__':
+    pp = Preprocessor()
+    data = pp.preprocess_data(data_path="../data/climbs")
+    pp.info()
+
+    import matplotlib.pyplot as plt
+
+    fig, axes = plt.subplots(5, 5, figsize=(8, 8))
+
+    for i, ax in enumerate(axes.flat):
+        ax.imshow(data[i][1].cpu().numpy())
+    plt.show()
