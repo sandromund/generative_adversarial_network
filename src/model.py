@@ -1,6 +1,6 @@
 from torch import nn
 
-from const import LATENT_SPACE_SAMPLE, DATA_DIMENSION
+from const import LATENT_SPACE_SAMPLE, DATA_DIMENSION, ONE_HOT_ENCODING
 
 
 class Discriminator(nn.Module):
@@ -44,5 +44,8 @@ class Generator(nn.Module):
 
     def forward(self, x):
         output = self.model(x)
-        output = output.view(x.size(0), 36, 36)
+        if ONE_HOT_ENCODING:
+            output = output.view(x.size(0), 36, 36, 4)
+        else:
+            output = output.view(x.size(0), 36, 36)
         return output

@@ -3,9 +3,9 @@ import torch
 from torch import nn
 from tqdm import tqdm
 
+from const import LATENT_SPACE_SAMPLE, ONE_HOT_ENCODING
 from data import get_data_loader
 from model import Generator, Discriminator
-from const import LATENT_SPACE_SAMPLE
 
 
 def train_models(data_path, batch_size, lr, num_epochs):
@@ -18,7 +18,8 @@ def train_models(data_path, batch_size, lr, num_epochs):
         mlflow.log_param('batch_size', batch_size)
         mlflow.log_param('learning_rate', lr)
         mlflow.log_param('num_epochs', num_epochs)
-        mlflow.log_param("LATENT_SPACE_SAMPLE", LATENT_SPACE_SAMPLE)
+        mlflow.log_param("LATENT_SPACE_SAMPLE".lower(), LATENT_SPACE_SAMPLE)
+        mlflow.log_param("ONE_HOT_ENCODING".lower(), ONE_HOT_ENCODING)
 
         discriminator = Discriminator()
         generator = Generator()
