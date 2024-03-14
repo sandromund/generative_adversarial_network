@@ -1,11 +1,12 @@
 import json
-import math
 import os
 from pprint import pprint
 
 import torch
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
+
+from const import ONE_HOT_ENCODING
 
 
 class KilterBoardData(Dataset):
@@ -75,6 +76,7 @@ class Preprocessor:
     """
 
     def __init__(self):
+        self.one_hot_encode_labels = ONE_HOT_ENCODING
         self.n_samples = 0
         self.n_max_samples = 20_000
         self.data_path = None
@@ -85,11 +87,14 @@ class Preprocessor:
         self.x_max = 35
         self.y_min = 0
         self.y_max = 35
-        self.data_shape = (self.y_max + 1, self.x_max + 1)
         self.mapping = {'MIDDLE': 1,
                         'FEET-ONLY': 2,
                         'START': 3,
                         'FINISH': 4}
+        if self.one_hot_encode_labels:
+            self.data_shape = (self.y_max + 1, self.x_max + 1, len(self.mapping))
+        else:
+            self.data_shape = (self.y_max + 1, self.x_max + 1)
 
     def preprocess_track(self, track):
         """
@@ -121,7 +126,10 @@ class Preprocessor:
             y = placement.get("y")
             if x < self.x_min or x > self.x_max or self.y_min < 0 or y > self.y_max:
                 return None
-            pp_track_x[y, x] = placement_type_mapped
+            if self.one_hot_encode_labels:
+                pp_track_x[y, x, placement_type_mapped - 1] = 1
+            else:
+                pp_track_x[y, x] = placement_type_mapped
         return pp_track_x, pp_track_id
 
     def preprocess_data(self, data_path):
