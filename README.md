@@ -4,6 +4,7 @@ Learn more about it [here](https://realpython.com/generative-adversarial-network
 
 
 Training
+A batch size 20000 on gpu is recommended
 ```shell
  python src/main.py train --data data/climbs --batch 100 --epochs 10
 ```
@@ -27,3 +28,10 @@ See https://pytorch.org/get-started/locally/
 ````shell
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ````
+
+### TODO 
+- Create Images during training and display them on dashboard
+- Track more metrics. F1 ..
+- Add counter for track elements
+- CNN 
+- Add Dropout
