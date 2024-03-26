@@ -11,15 +11,12 @@ from model import Generator, Discriminator
 
 
 def train_models(data_path, batch_size, lr, num_epochs):
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    mlflow.log_param('device', device)
-
     mlflow.set_experiment("Generative Adversarial Network")
     mlflow.pytorch.autolog()
 
     with mlflow.start_run() as run:
-        mlflow.set_tag("GAN", "DL")
-
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        mlflow.set_tag("device", device)
         mlflow.log_param('batch_size', batch_size)
         mlflow.log_param('learning_rate', lr)
         mlflow.log_param('num_epochs', num_epochs)
