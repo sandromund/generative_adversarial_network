@@ -1,3 +1,5 @@
+import logging
+
 import mlflow.pytorch
 import torch
 from torch import nn
@@ -9,6 +11,9 @@ from model import Generator, Discriminator
 
 
 def train_models(data_path, batch_size, lr, num_epochs):
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    mlflow.log_param('device', device)
+
     mlflow.set_experiment("Generative Adversarial Network")
     mlflow.pytorch.autolog()
 
@@ -21,10 +26,10 @@ def train_models(data_path, batch_size, lr, num_epochs):
         mlflow.log_param("LATENT_SPACE_SAMPLE".lower(), LATENT_SPACE_SAMPLE)
         mlflow.log_param("ONE_HOT_ENCODING".lower(), ONE_HOT_ENCODING)
 
-        discriminator = Discriminator()
-        generator = Generator()
+        discriminator = Discriminator().to(device)
+        generator = Generator().to(device)
         train_loader = get_data_loader(data_path=data_path, batch_size=batch_size)
-        loss_function = nn.BCELoss()
+        loss_function = nn.BCELoss().to(device)
 
         optimizer_discriminator = torch.optim.Adam(discriminator.parameters(), lr=lr)
         optimizer_generator = torch.optim.Adam(generator.parameters(), lr=lr)
@@ -32,28 +37,28 @@ def train_models(data_path, batch_size, lr, num_epochs):
         for epoch in tqdm(range(num_epochs), "train_models"):
             for n, (real_samples, _) in enumerate(train_loader):
                 # Data for training the discriminator
-                real_samples_labels = torch.ones((batch_size, 1))
-                latent_space_samples = torch.randn((batch_size, LATENT_SPACE_SAMPLE))
-                generated_samples = generator(latent_space_samples)
-                generated_samples_labels = torch.zeros((batch_size, 1))
-                all_samples = torch.cat((real_samples, generated_samples))
-                all_samples_labels = torch.cat((real_samples_labels, generated_samples_labels))
+                real_samples_labels = torch.ones((batch_size, 1)).to(device=device)
+                latent_space_samples = torch.randn((batch_size, LATENT_SPACE_SAMPLE)).to(device=device)
+                generated_samples = generator(latent_space_samples).to(device=device)
+                generated_samples_labels = torch.zeros((batch_size, 1)).to(device=device)
+                all_samples = torch.cat((real_samples.to(device=device), generated_samples)).to(device=device)
+                all_samples_labels = torch.cat((real_samples_labels, generated_samples_labels)).to(device=device)
 
                 # Training the discriminator
                 discriminator.zero_grad()
-                output_discriminator = discriminator(all_samples)
+                output_discriminator = discriminator(all_samples).to(device=device)
 
                 loss_discriminator = loss_function(output_discriminator, all_samples_labels)
                 loss_discriminator.backward()
                 optimizer_discriminator.step()
 
                 # Data for training the generator
-                latent_space_samples = torch.randn((batch_size, LATENT_SPACE_SAMPLE))
+                latent_space_samples = torch.randn((batch_size, LATENT_SPACE_SAMPLE)).to(device=device)
 
                 # Training the generator
                 generator.zero_grad()
-                generated_samples = generator(latent_space_samples)
-                output_discriminator_generated = discriminator(generated_samples)
+                generated_samples = generator(latent_space_samples).to(device=device)
+                output_discriminator_generated = discriminator(generated_samples).to(device=device)
                 loss_generator = loss_function(output_discriminator_generated, real_samples_labels)
                 loss_generator.backward()
                 optimizer_generator.step()

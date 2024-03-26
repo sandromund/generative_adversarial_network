@@ -21,3 +21,9 @@ mlflow server --host 127.0.0.1 --port 8080
 # Bouldern
 https://kilterboard.app/
 -->
+
+### GPU Setup
+See https://pytorch.org/get-started/locally/ 
+````shell
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+````

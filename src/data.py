@@ -162,7 +162,7 @@ class Preprocessor:
             self.file_counter += 1
             if not file.endswith(".json"):
                 continue
-            with open(os.path.join(self.data_path, file), 'r') as f:
+            with open(os.path.join(self.data_path, file), 'r', encoding='utf-8') as f:
                 json_data = json.load(f)
             for track in json_data:
                 self.track_counter += 1
