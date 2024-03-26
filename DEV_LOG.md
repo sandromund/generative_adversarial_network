@@ -1,10 +1,9 @@
 # Dev Log
 
-13.03.24
-
-* First version is running on real data
-* Discriminator outperforms Generator way to fast
-* Generations not that good
+26.03.24
+* Added GPU, training much faster now 
+* Generations are discrete but way to many non-zero values
+* Maybe other loss function?
 
 14.03.24
 
@@ -14,4 +13,11 @@
 * Found Papers that might
   help: [DWGAN](https://openreview.net/pdf?id=Bkv76ilDz), [DGSAN](https://arxiv.org/pdf/1908.09127.pdf)
 * Experimenting with model architectures and hyperparameters 
-* Generator is much m
+* Generator is better now
+
+13.03.24
+
+* First version is running on real data
+* Discriminator outperforms Generator way to fast
+* Generations not that good
+
