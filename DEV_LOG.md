@@ -1,9 +1,10 @@
 # Dev Log
 
 26.03.24
-* Added GPU, training much faster now 
+* Added GPU support, training much faster now 
 * Generations are discrete but way to many non-zero values
 * Maybe other loss function?
+* Moved to LeakyReLU
 
 14.03.24
 
