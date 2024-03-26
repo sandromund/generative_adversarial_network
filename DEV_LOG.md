@@ -4,9 +4,14 @@
 * Added GPU support, training much faster now 
 * Experimented with model architectures
 * Moved to LeakyReLU and added Dropout
-* Changed decay of first and second  order momentum of gradient
+* Changed decay of first and second order momentum of gradient
 * Smaller batch sizes work better
 * Generations are discrete but way to many non-zero values
+* Discriminator start with very good f1 score, might be buggy.
+* Discriminator learns very fast to predict everything as zero
+* Added delay to discriminator training 
+* Rounded discriminator output (looks like a fix but loss is now very high)
+* Precision generator is allways 1
 
 14.03.24
 * Tried one-hot-encoding predictions

@@ -4,7 +4,7 @@ from torch import nn
 from torchmetrics.classification import BinaryF1Score, BinaryPrecision, BinaryRecall
 from tqdm import tqdm
 
-from const import LATENT_SPACE_SAMPLE, ONE_HOT_ENCODING, BETAS, SEED
+from const import LATENT_SPACE_SAMPLE, ONE_HOT_ENCODING, BETAS, SEED, DISCRIMINATOR_DELAY
 from data import get_data_loader
 from model import Generator, Discriminator
 
@@ -35,8 +35,10 @@ def train_models(data_path, batch_size, lr, num_epochs):
         optimizer_discriminator = torch.optim.Adam(discriminator.parameters(), lr=lr, betas=BETAS)
         optimizer_generator = torch.optim.Adam(generator.parameters(), lr=lr, betas=BETAS)
 
+        delay_counter = 0
         for epoch in tqdm(range(num_epochs), "train_models"):
             for n, (real_samples, _) in enumerate(train_loader):
+                delay_counter += 1
                 # Data for training the discriminator
                 real_samples_labels = torch.ones((batch_size, 1)).to(device=device)
                 latent_space_samples = torch.randn((batch_size, LATENT_SPACE_SAMPLE)).to(device=device)
@@ -50,8 +52,10 @@ def train_models(data_path, batch_size, lr, num_epochs):
                 output_discriminator = discriminator(all_samples).to(device=device)
 
                 loss_discriminator = loss_function(output_discriminator, all_samples_labels)
-                loss_discriminator.backward()
-                optimizer_discriminator.step()
+                if delay_counter > DISCRIMINATOR_DELAY:
+                    loss_discriminator.backward()
+                    optimizer_discriminator.step()
+                    delay_counter = 0
 
                 # Data for training the generator
                 latent_space_samples = torch.randn((batch_size, LATENT_SPACE_SAMPLE)).to(device=device)
@@ -64,12 +68,16 @@ def train_models(data_path, batch_size, lr, num_epochs):
                 loss_generator.backward()
                 optimizer_generator.step()
 
+            mlflow.log_metric("output_discriminator_generated_sum", output_discriminator_generated.sum(), step=epoch)
+            mlflow.log_metric("output_discriminator_sum", output_discriminator.sum(), step=epoch)
+
             mlflow.log_metric("f1_discriminator",
                               f1_bin(output_discriminator, all_samples_labels),
                               step=epoch)
             mlflow.log_metric("f1_generator",
                               f1_bin(output_discriminator_generated, real_samples_labels),
                               step=epoch)
+
             mlflow.log_metric("precision_discriminator",
                               precision(output_discriminator, all_samples_labels),
                               step=epoch)
@@ -81,8 +89,8 @@ def train_models(data_path, batch_size, lr, num_epochs):
                               recall(output_discriminator_generated, real_samples_labels), step=epoch)
             mlflow.log_metric("loss_discriminator", loss_discriminator, step=epoch)
             mlflow.log_metric("loss_generator", loss_generator, step=epoch)
-            mlflow.log_metric("sum_generated_samples", generated_samples.sum() / batch_size, step=epoch)
-            mlflow.log_metric("sum_real_samples", real_samples.sum() / batch_size, step=epoch)
+            mlflow.log_metric("sum_generated_samples", generated_samples.sum(), step=epoch)
+            mlflow.log_metric("sum_real_samples", real_samples.sum(), step=epoch)
 
         mlflow.pytorch.log_model(generator, "generator")
         mlflow.pytorch.log_model(discriminator, "discriminator")
