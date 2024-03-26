@@ -1,8 +1,7 @@
-import logging
-
 import mlflow.pytorch
 import torch
 from torch import nn
+from torchmetrics.classification import BinaryF1Score, BinaryPrecision, BinaryRecall
 from tqdm import tqdm
 
 from const import LATENT_SPACE_SAMPLE, ONE_HOT_ENCODING, BETAS, SEED
@@ -29,6 +28,9 @@ def train_models(data_path, batch_size, lr, num_epochs):
         generator = Generator().to(device)
         train_loader = get_data_loader(data_path=data_path, batch_size=batch_size)
         loss_function = nn.BCELoss().to(device)  # binary cross entropy loss function
+        f1_bin = BinaryF1Score().to(device)
+        recall = BinaryRecall().to(device)
+        precision = BinaryPrecision().to(device)
 
         optimizer_discriminator = torch.optim.Adam(discriminator.parameters(), lr=lr, betas=BETAS)
         optimizer_generator = torch.optim.Adam(generator.parameters(), lr=lr, betas=BETAS)
@@ -62,10 +64,25 @@ def train_models(data_path, batch_size, lr, num_epochs):
                 loss_generator.backward()
                 optimizer_generator.step()
 
+            mlflow.log_metric("f1_discriminator",
+                              f1_bin(output_discriminator, all_samples_labels),
+                              step=epoch)
+            mlflow.log_metric("f1_generator",
+                              f1_bin(output_discriminator_generated, real_samples_labels),
+                              step=epoch)
+            mlflow.log_metric("precision_discriminator",
+                              precision(output_discriminator, all_samples_labels),
+                              step=epoch)
+            mlflow.log_metric("precision_generator",
+                              precision(output_discriminator_generated, real_samples_labels), step=epoch)
+            mlflow.log_metric("recall_discriminator",
+                              recall(output_discriminator, all_samples_labels), step=epoch)
+            mlflow.log_metric("recall_generator",
+                              recall(output_discriminator_generated, real_samples_labels), step=epoch)
             mlflow.log_metric("loss_discriminator", loss_discriminator, step=epoch)
             mlflow.log_metric("loss_generator", loss_generator, step=epoch)
-            mlflow.log_metric("generated_samples_sum", generated_samples.sum() / batch_size, step=epoch)
-            mlflow.log_metric("real_samples_samples_sum", real_samples.sum() / batch_size, step=epoch)
+            mlflow.log_metric("sum_generated_samples", generated_samples.sum() / batch_size, step=epoch)
+            mlflow.log_metric("sum_real_samples", real_samples.sum() / batch_size, step=epoch)
 
         mlflow.pytorch.log_model(generator, "generator")
         mlflow.pytorch.log_model(discriminator, "discriminator")
