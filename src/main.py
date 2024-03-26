@@ -1,7 +1,12 @@
+import os
+import random
+
 import click
+import torch
 
 from generate import generate_sample_mlflow
 from train import train_models
+from const import SEED
 
 
 @click.group()
@@ -24,8 +29,18 @@ def generate(model):
     generate_sample_mlflow(model_uri=model)
 
 
+def seed_everything(seed: int):
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = True
+
+
 cli.add_command(train)
 cli.add_command(generate)
 
 if __name__ == '__main__':
+    seed_everything(SEED)
     cli()

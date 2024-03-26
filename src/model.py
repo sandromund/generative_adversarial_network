@@ -7,10 +7,10 @@ class Discriminator(nn.Module):
     def __init__(self):
         super().__init__()
         self.model = nn.Sequential(
-            nn.Linear(DATA_DIMENSION, LATENT_SPACE_SAMPLE),
+            nn.Linear(DATA_DIMENSION, 648),
             nn.LeakyReLU(),
             nn.Dropout(0.5),
-            nn.Linear(LATENT_SPACE_SAMPLE, 1),
+            nn.Linear(648, 1),
             nn.Sigmoid(),
         )
 
@@ -25,6 +25,12 @@ class Generator(nn.Module):
         super().__init__()
         self.model = nn.Sequential(
             nn.Linear(LATENT_SPACE_SAMPLE, 648),
+            nn.LeakyReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(648, 648),
+            nn.LeakyReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(648, 648),
             nn.LeakyReLU(),
             nn.Dropout(0.5),
             nn.Linear(648, DATA_DIMENSION),

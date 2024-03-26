@@ -21,6 +21,9 @@ mlflow server --host 127.0.0.1 --port 8080
 <!---
 # Bouldern
 https://kilterboard.app/
+
+curl -X POST depenbrock.ddns.net:18080/visuzlizer --data "test"
+
 -->
 
 ### GPU Setup
@@ -35,3 +38,5 @@ pip3 install torch torchvision torchaudio --index-url https://download.pytorch.o
 - Add counter for track elements
 - CNN 
 - Add Dropout
+- inspect data / check for errors or outliers
+-  Wasserstein GAN

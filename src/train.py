@@ -5,7 +5,7 @@ import torch
 from torch import nn
 from tqdm import tqdm
 
-from const import LATENT_SPACE_SAMPLE, ONE_HOT_ENCODING, BETAS
+from const import LATENT_SPACE_SAMPLE, ONE_HOT_ENCODING, BETAS, SEED
 from data import get_data_loader
 from model import Generator, Discriminator
 
@@ -23,6 +23,7 @@ def train_models(data_path, batch_size, lr, num_epochs):
         mlflow.log_param("LATENT_SPACE_SAMPLE".lower(), LATENT_SPACE_SAMPLE)
         mlflow.log_param("ONE_HOT_ENCODING".lower(), ONE_HOT_ENCODING)
         mlflow.log_param("BETAS".lower(), BETAS)
+        mlflow.log_param("SEED".lower(), SEED)
 
         discriminator = Discriminator().to(device)
         generator = Generator().to(device)
@@ -61,9 +62,10 @@ def train_models(data_path, batch_size, lr, num_epochs):
                 loss_generator.backward()
                 optimizer_generator.step()
 
-                mlflow.log_metric("loss_discriminator", loss_discriminator, step=epoch)
-                mlflow.log_metric("loss_generator", loss_generator, step=epoch)
-                mlflow.log_metric("generated_samples_sum", generated_samples.sum() / batch_size, step=epoch)
+            mlflow.log_metric("loss_discriminator", loss_discriminator, step=epoch)
+            mlflow.log_metric("loss_generator", loss_generator, step=epoch)
+            mlflow.log_metric("generated_samples_sum", generated_samples.sum() / batch_size, step=epoch)
+            mlflow.log_metric("real_samples_samples_sum", real_samples.sum() / batch_size, step=epoch)
 
         mlflow.pytorch.log_model(generator, "generator")
         mlflow.pytorch.log_model(discriminator, "discriminator")
