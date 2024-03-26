@@ -35,8 +35,7 @@ pip3 install torch torchvision torchaudio --index-url https://download.pytorch.o
 ### TODO 
 - Create Images during training and display them on dashboard
 - Track more metrics. F1 ..
-- Add counter for track elements
 - CNN 
-- Add Dropout
 - inspect data / check for errors or outliers
--  Wasserstein GAN
+- Wasserstein GAN
+- More than one discriminator
