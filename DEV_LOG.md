@@ -1,5 +1,14 @@
 # Dev Log
 
+29.03.24
+* Added Flag to only train the worst model 
+* Added custom loss
+* Generated data has still to many values
+* non-zero output is constant, maybe every generation is the same
+* small variance with very big batch
+* spare predictions are a big problem
+* start to think about a different approach
+
 26.03.24
 * Added GPU support, training much faster now 
 * Experimented with model architectures

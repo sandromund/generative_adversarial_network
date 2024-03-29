@@ -35,6 +35,7 @@ class Generator(nn.Module):
             nn.Linear(36, 144),
             nn.LeakyReLU(0.2),
             nn.Linear(144, DATA_DIMENSION),
+            # nn.Tanh(),  # hyperbolic tangent function
         )
 
     def forward(self, x):

@@ -40,11 +40,10 @@ def train_models(data_path, batch_size, lr, num_epochs):
         optimizer_discriminator = torch.optim.Adam(discriminator.parameters(), lr=lr, betas=c.BETAS)
         optimizer_generator = torch.optim.Adam(generator.parameters(), lr=lr, betas=c.BETAS)
 
-        delay_counter = 0
+        loss_generator = 0
         for epoch in tqdm(range(num_epochs), "train_models"):
             for n, (real_samples, _) in enumerate(train_loader):
                 real_samples = real_samples.to(device=device)
-                delay_counter += 1
                 # Data for training the discriminator
                 real_samples_labels = torch.ones((batch_size, 1)).to(device=device)
                 latent_space_samples = torch.randn((batch_size, c.LATENT_SPACE_SAMPLE)).to(device=device)
@@ -58,10 +57,9 @@ def train_models(data_path, batch_size, lr, num_epochs):
                 output_discriminator = discriminator(all_samples).to(device=device)
 
                 loss_discriminator = loss_function(output_discriminator, all_samples_labels)
-                if delay_counter > c.DISCRIMINATOR_DELAY:
+                if loss_discriminator > loss_generator:
                     loss_discriminator.backward()
                     optimizer_discriminator.step()
-                    delay_counter = 0
 
                 # Data for training the generator
                 latent_space_samples = torch.randn((batch_size, c.LATENT_SPACE_SAMPLE)).to(device=device)
@@ -72,11 +70,16 @@ def train_models(data_path, batch_size, lr, num_epochs):
                 output_discriminator_generated = discriminator(generated_samples).to(device=device)
 
                 bce_loss_loss_generator = loss_function(output_discriminator_generated, real_samples_labels)
-                custom_loss_generator = torch.mean(torch.abs(output_discriminator_generated -
-                                                             torch.zeros_like(output_discriminator_generated)))
+                # custom_loss_generator = torch.mean(torch.abs(output_discriminator_generated -
+                #                                             torch.zeros_like(output_discriminator_generated)))
+                # custom_loss_generator = torch.abs(output_discriminator_generated.sum() - real_samples.sum())
+                non_zero_generated = torch.count_nonzero(output_discriminator_generated)
+                non_zero_real_samples_ = torch.count_nonzero(real_samples)
+                custom_loss_generator = torch.abs(non_zero_generated - non_zero_real_samples_) / 100
                 loss_generator = c.WEIGHT_BCE_LOSS * bce_loss_loss_generator + c.WEIGHT_CUSTOM_LOSS * custom_loss_generator
-                loss_generator.backward()
-                optimizer_generator.step()
+                if loss_generator > loss_discriminator:
+                    loss_generator.backward()
+                    optimizer_generator.step()
 
             mlflow.log_metric("output_discriminator_generated_sum", output_discriminator_generated.sum(), step=epoch)
             mlflow.log_metric("output_discriminator_sum", output_discriminator.sum(), step=epoch)
@@ -101,8 +104,8 @@ def train_models(data_path, batch_size, lr, num_epochs):
             mlflow.log_metric("loss_generator", loss_generator, step=epoch)
             mlflow.log_metric("loss_bce_generator", bce_loss_loss_generator, step=epoch)
             mlflow.log_metric("loss_custom_generator", custom_loss_generator, step=epoch)
-            mlflow.log_metric("sum_generated_samples", generated_samples.sum(), step=epoch)
-            mlflow.log_metric("sum_real_samples", real_samples.sum(), step=epoch)
+            mlflow.log_metric("non_zero_generated", non_zero_generated, step=epoch)
+            mlflow.log_metric("non_zero_real_samples", non_zero_real_samples_, step=epoch)
 
         mlflow.pytorch.log_model(generator, "generator")
         mlflow.pytorch.log_model(discriminator, "discriminator")
